@@ -1,20 +1,33 @@
 package com.smartautoclicker.app.automation
 
-import android.util.Log
 import android.view.accessibility.AccessibilityNodeInfo
 
 class WorkflowRunner {
 
-    companion object {
-        private const val TAG = "WorkflowRunner"
-    }
-
     private var workflow: Workflow? = null
     private var currentStepIndex = 0
 
-    fun load(workflow: Workflow) {
+    fun load(workflow: Workflow): Boolean {
+
+        val result = WorkflowValidator.validate(workflow)
+
+        if (!result.valid) {
+
+            AutomationLogger.e("Workflow validation failed")
+
+            result.errors.forEach {
+                AutomationLogger.e(it)
+            }
+
+            return false
+        }
+
         this.workflow = workflow
         currentStepIndex = 0
+
+        AutomationLogger.i("Workflow loaded: ${workflow.name}")
+
+        return true
     }
 
     fun reset() {
@@ -27,6 +40,7 @@ class WorkflowRunner {
     }
 
     fun currentStep(): WorkflowStep? {
+
         val wf = workflow ?: return null
 
         if (currentStepIndex >= wf.steps.size) {
@@ -41,7 +55,7 @@ class WorkflowRunner {
         val wf = workflow ?: return false
 
         if (currentStepIndex >= wf.steps.size) {
-            Log.d(TAG, "Workflow completed.")
+            AutomationLogger.i("Workflow completed.")
             return false
         }
 
@@ -52,29 +66,41 @@ class WorkflowRunner {
             return true
         }
 
-        val conditionPassed =
-            ConditionChecker.check(root, step)
-
-        if (!conditionPassed) {
-            Log.d(TAG, "Waiting for condition: ${step.condition}")
+        if (!ConditionChecker.check(root, step)) {
             return false
         }
 
-        val actionSuccess =
-            ActionExecutor.execute(step)
+        val executed = ActionExecutor.execute(step)
 
-        if (!actionSuccess) {
-            Log.d(TAG, "Action failed: ${step.action}")
+        if (!executed) {
             return false
         }
 
         currentStepIndex++
 
-        Log.d(
-            TAG,
-            "Moved to step $currentStepIndex/${wf.steps.size}"
+        AutomationLogger.d(
+            "Step $currentStepIndex of ${wf.steps.size} completed."
         )
 
         return true
+    }
+
+    fun getProgress(): Float {
+
+        val wf = workflow ?: return 0f
+
+        if (wf.steps.isEmpty()) {
+            return 0f
+        }
+
+        return currentStepIndex.toFloat() / wf.steps.size.toFloat()
+    }
+
+    fun getCurrentIndex(): Int {
+        return currentStepIndex
+    }
+
+    fun getWorkflow(): Workflow? {
+        return workflow
     }
 }
