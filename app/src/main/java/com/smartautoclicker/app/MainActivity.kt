@@ -1,5 +1,6 @@
 package com.smartautoclicker.app
 
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
@@ -17,7 +18,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
 
         txtStatus = findViewById(R.id.txtStatus)
@@ -44,15 +44,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAccessibilityStatus() {
-        val manager = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
 
-        val enabled = manager
-            .getEnabledAccessibilityServiceList(
+        val accessibilityManager =
+            getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
+
+        val enabledServices =
+            accessibilityManager.getEnabledAccessibilityServiceList(
                 AccessibilityServiceInfo.FEEDBACK_ALL_MASK
             )
-            .any {
-                it.resolveInfo.serviceInfo.packageName == packageName
+
+        var enabled = false
+
+        for (service in enabledServices) {
+            if (service.resolveInfo.serviceInfo.packageName == packageName) {
+                enabled = true
+                break
             }
+        }
 
         if (enabled) {
             txtStatus.text = "Accessibility Service: ON"
