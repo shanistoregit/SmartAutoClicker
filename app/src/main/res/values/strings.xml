@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Smart Auto Clicker</string>
+
+    <string name="accessibility_service_description">
+        Smart Auto Clicker uses the Accessibility API to automate user interface interactions for accessibility features and UI testing.
+    </string>
+
+    <string name="enable_service">Enable Accessibility Service</string>
+
+    <string name="service_not_enabled">
+        Accessibility Service is disabled.
+    </string>
+
+    <string name="service_enabled">
+        Accessibility Service is enabled.
+    </string>
+
+</resources>
