@@ -1,6 +1,7 @@
 package com.smartautoclicker.app.automation
 
 import android.view.accessibility.AccessibilityNodeInfo
+import com.smartautoclicker.app.accessibility.UiInspector
 
 object ConditionChecker {
 
@@ -18,16 +19,16 @@ object ConditionChecker {
             ConditionType.NONE -> true
 
             ConditionType.TEXT_EXISTS ->
-                findText(root, step.value)
+                UiInspector.findByText(root, step.value) != null
 
             ConditionType.TEXT_NOT_EXISTS ->
-                !findText(root, step.value)
+                UiInspector.findByText(root, step.value) == null
 
             ConditionType.VIEW_ID_EXISTS ->
-                findViewId(root, step.value)
+                UiInspector.findByViewId(root, step.value) != null
 
             ConditionType.VIEW_ID_NOT_EXISTS ->
-                !findViewId(root, step.value)
+                UiInspector.findByViewId(root, step.value) == null
 
             ConditionType.PACKAGE_IS ->
                 root.packageName?.toString() == step.value
@@ -38,51 +39,5 @@ object ConditionChecker {
             ConditionType.OCR_TEXT_FOUND ->
                 false
         }
-    }
-
-    private fun findText(
-        node: AccessibilityNodeInfo,
-        text: String
-    ): Boolean {
-
-        if (node.text?.toString()?.contains(text, true) == true) {
-            return true
-        }
-
-        if (node.contentDescription?.toString()?.contains(text, true) == true) {
-            return true
-        }
-
-        for (i in 0 until node.childCount) {
-
-            val child = node.getChild(i) ?: continue
-
-            if (findText(child, text)) {
-                return true
-            }
-        }
-
-        return false
-    }
-
-    private fun findViewId(
-        node: AccessibilityNodeInfo,
-        viewId: String
-    ): Boolean {
-
-        if (node.viewIdResourceName == viewId) {
-            return true
-        }
-
-        for (i in 0 until node.childCount) {
-
-            val child = node.getChild(i) ?: continue
-
-            if (findViewId(child, viewId)) {
-                return true
-            }
-        }
-
-        return false
     }
 }
