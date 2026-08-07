@@ -7,6 +7,8 @@ class WorkflowRunner {
     private var workflow: Workflow? = null
     private var currentStepIndex = 0
 
+    private val context = WorkflowContext()
+
     fun load(workflow: Workflow): Boolean {
 
         val result = WorkflowValidator.validate(workflow)
@@ -24,6 +26,7 @@ class WorkflowRunner {
 
         this.workflow = workflow
         currentStepIndex = 0
+        context.clear()
 
         AutomationLogger.i("Workflow loaded: ${workflow.name}")
 
@@ -32,6 +35,7 @@ class WorkflowRunner {
 
     fun reset() {
         currentStepIndex = 0
+        context.clear()
     }
 
     fun isFinished(): Boolean {
@@ -73,8 +77,13 @@ class WorkflowRunner {
         val executed = ActionExecutor.execute(step)
 
         if (!executed) {
+            context.setError("Action failed: ${step.action}")
+            AutomationLogger.e(context.lastError ?: "Unknown error")
             return false
         }
+
+        context.put("last_action", step.action.name)
+        context.put("last_step", step.id)
 
         currentStepIndex++
 
@@ -102,5 +111,9 @@ class WorkflowRunner {
 
     fun getWorkflow(): Workflow? {
         return workflow
+    }
+
+    fun getContext(): WorkflowContext {
+        return context
     }
 }
